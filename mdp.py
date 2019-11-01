@@ -23,6 +23,18 @@ class State(object):
     pass
 
 @njit
+def Policy():
+    return np.zeros((N_AP,N_JOB), dtype=np.int32)
+
+@njit
+def RandomPolicy():
+    return np.zeros((N_AP,N_JOB), dtype=np.int32) #FIXME: not this
+
+@njit
+def BaselinePolicy():
+    return np.zeros((N_AP,N_JOB), dtype=np.int32) #FIXME: not this
+
+@njit
 def AP2Vec(ap_stat):
     pass
 
@@ -39,5 +51,5 @@ def evaluation():
     pass
 
 @njit
-def run():
+def optimize():
     pass
