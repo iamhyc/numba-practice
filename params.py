@@ -48,3 +48,7 @@ else:
         'off_trans' :off_trans
     })
     pass
+
+@njit
+def reg(x):
+    return min(max(0,x),LQ)

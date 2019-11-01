@@ -42,7 +42,7 @@ def NextState(stat, policy):
 
     return newStat
 
-@njit
+
 def main():
     stat = State()
     stage = 0
