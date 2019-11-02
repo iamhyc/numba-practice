@@ -1,6 +1,7 @@
 
 import numpy as np
-from numba import njit
+from scipy.stats import norm
+from numba import njit, jit
 
 @njit
 def multoss(p_vec):
@@ -34,17 +35,30 @@ def FillARow(mat, idx, arr, offset=0):
     pass
 
 @njit
-def genUniformDist():       #e.g. [1, 1, ... 1, 1]
-    pass
+def genFlatDist(size):          #e.g. [1, 1, ... 1, 1]
+    arr = 0.1+0.1*np.random.rand(size).astype(np.float32)
+    return (arr / arr.sum())
 
 @njit
-def genHeavyTailDist():     #e.g. [0, 0, ... 1, 1]
-    pass
+def genHeavyTailDist(size):     #e.g. [0, 0, ... 1, 1]
+    mid_size = size//2
+    arr_1 = 0.1*np.random.rand(mid_size).astype(np.float32)
+    arr_2 = 0.5+0.1*np.random.rand(size-mid_size).astype(np.falot32)
+    arr = np.concatenate(arr_1, arr_2).sort()
+    return (arr / arr.sum())
 
 @njit
-def genHeavyHeadDist():     #e.g. [1, 1, ... 0, 0]
-    pass
+def genHeavyHeadDist(size):     #e.g. [1, 1, ... 0, 0]
+    arr = genHeavyTailDist(size)
+    return arr[::-1]
 
-@njit
-def genSplitDist():         #e.g. [1, 1, ..0,0,0.. 1, 1]
-    pass
+def genGaussianDist(size):      #e.g. [0, 0, ..1,1,1.., 0, 0]
+    rv = norm(loc=size//2, scale=0.8)
+    arr = rv.pmf(np.arange(size))
+    arr = np.array(arr, dtype=np.float32)
+    return (arr / arr.sum())
+
+def genSplitDist(size):         #e.g. [1, 1, ..0,0,0.., 1, 1]
+    arr = genGaussianDist(size)
+    arr = 1 - arr
+    return (arr / arr.sum())

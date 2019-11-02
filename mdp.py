@@ -46,7 +46,7 @@ ESValVec  = np.repeat(arange(LQ+1), repeats=PROC_MAX).astype(np.float32)
 
 @njit
 def AP2Vec(ap_stat):
-    ap_vec = np.zeros(MQ, dtype=np.flaot32)
+    ap_vec = np.zeros(MQ, dtype=np.float32)
     ap_vec[ ap_stat ] = 1
     return ap_vec
 
@@ -63,7 +63,7 @@ def ES2Entry(l,r):
 
 @njit
 def TransES(beta, proc_dist):
-    mat = np.zeros((DIM_P, DIM_P), dtype=np.flaot32)
+    mat = np.zeros((DIM_P, DIM_P), dtype=np.float32)
     
     # fill in r==0
     for l in range(LQ+1):
