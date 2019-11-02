@@ -4,8 +4,10 @@ So this params.py module would only be executed once as whole.
 '''
 import random
 import numpy as np
+from scipy.stats import binom
 from pathlib import Path
 from utility import *
+from numba import njit, prange
 
 GAMMA = 0.90
 BETA  = 10
@@ -38,14 +40,8 @@ else:
     arr_prob = 0.1 * np.random.rand(N_AP, N_JOB).astype(np.float32)             #[0.00, 0.01] for each
     ul_prob  = 0.3 + 0.2*np.random.rand((N_AP, N_ES, N_JOB), dtype=np.float32)  #[0.30, 0.50] for each
 
-    proc_dist = np.zeros((N_ES,N_JOB,PROC_RNG_L), dtype=np.float32)
-    for m in range(N_ES):
-        for j in range(N_JOB):
-            roll = np.random.randint(2)
-            proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) else genHeavyTailDist(PROC_RNG_L)
-
-    ul_trans  = np.zeros((N_AP,N_ES,N_JOB, MQ,MQ),  dtype=np.float32) #FIXME: not initialized
-    off_trans = np.zeros((N_ES,N_JOB,DIM_P,DIM_P),  dtype=np.float32) #FIXME: not initialized
+    proc_dist = genJobDist()
+    ul_trans, off_trans = genTransMat()
 
     np.savez(npzfile, **{
         'arr_prob'  :arr_prob,
@@ -55,6 +51,27 @@ else:
         'off_trans' :off_trans
     })
     pass
+
+@njit
+def genTransMat():
+    ul_trans  = np.zeros((N_AP,N_ES,N_JOB, MQ,MQ),  dtype=np.float32)
+    off_trans = np.copy(ul_trans)
+    for n1 in prange(MQ):
+        for j in prange(N_JOB):
+            for m in prange(N_ES)
+                for k in prange(N_AP):
+                    rv = binom(n=n1, p=ul_prob[k,m,j])
+                    #TODO: unfinished!
+    return ul_trans,off_trans
+
+@njit
+def genJobDist():
+    proc_dist = np.zeros((N_ES,N_JOB,PROC_RNG_L), dtype=np.float32)
+    for j in prange(N_JOB):
+        for m in prange(N_ES):
+            roll = np.random.randint(2)
+            proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) else genHeavyTailDist(PROC_RNG_L)
+    return proc_dist
 
 @njit
 def reg(x):
