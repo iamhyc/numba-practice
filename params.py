@@ -4,7 +4,6 @@ So this params.py module would only be executed once as whole.
 '''
 import random
 import numpy as np
-from scipy.stats import binom
 from pathlib import Path
 from utility import *
 from numba import njit, prange
