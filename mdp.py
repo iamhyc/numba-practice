@@ -62,6 +62,22 @@ def ES2Entry(l,r):
     return l*PROC_MAX + r
 
 @njit
+def TransAP(prob):
+    ul_trans  = np.zeros((N_AP,N_ES,N_JOB, MQ,MQ),  dtype=np.float32)
+    off_trans = np.copy(ul_trans)
+    for n1 in prange(MQ):
+        for j in prange(N_JOB):
+            for m in prange(N_ES)
+                for k in prange(N_AP):
+                    rv = binom(n=n1, p=ul_prob[k,m,j])
+                    ul_trans[n1, 0]     = arr_prob[k,j]*rv.pmf(1) #no arrival
+                    ul_trans[n1, n1+1]  = arr_prob[k,j]*rv.pmf(0) #no departure
+                    for n2 in range(1, n1):
+                        #TODO: unfinished!
+                    
+    return ul_trans,off_trans
+
+@njit
 def TransES(beta, proc_dist):
     mat = np.zeros((DIM_P, DIM_P), dtype=np.float32)
     
@@ -83,7 +99,11 @@ def TransES(beta, proc_dist):
 
 @njit
 def evaluate(x0, j, stat):
+    val_ap = np.zeros((N_AP, N_ES), dtype=np.float32)
+    val_es = np.zeros((N_ES,),      dtype=np.float32)
 
+
+    return np.sum(val_ap, val_es)
     pass
 
 @njit

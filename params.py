@@ -41,28 +41,16 @@ else:
     ul_prob  = 0.3 + 0.2*np.random.rand((N_AP, N_ES, N_JOB), dtype=np.float32)  #[0.30, 0.50] for each
 
     proc_dist = genJobDist()
-    ul_trans, off_trans = genTransMat()
+    # ul_trans, off_trans = TransAP()
 
     np.savez(npzfile, **{
         'arr_prob'  :arr_prob,
         'ul_prob'   :ul_prob,
         'proc_dist' :proc_dist,
-        'ul_trans'  :ul_trans,
-        'off_trans' :off_trans
+        # 'ul_trans'  :ul_trans,
+        # 'off_trans' :off_trans
     })
     pass
-
-@njit
-def genTransMat():
-    ul_trans  = np.zeros((N_AP,N_ES,N_JOB, MQ,MQ),  dtype=np.float32)
-    off_trans = np.copy(ul_trans)
-    for n1 in prange(MQ):
-        for j in prange(N_JOB):
-            for m in prange(N_ES)
-                for k in prange(N_AP):
-                    rv = binom(n=n1, p=ul_prob[k,m,j])
-                    #TODO: unfinished!
-    return ul_trans,off_trans
 
 @njit
 def genJobDist():
