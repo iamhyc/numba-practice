@@ -67,10 +67,10 @@ def TransAP(arr_prob, ul_prob):
     ul_trans  = np.zeros((N_AP,N_ES,N_JOB, MQ,MQ),  dtype=np.float32)
     for n1 in prange(MQ):
         rv = binom(n=n1, p=ul_prob)
-        ul_trans[n1, 0]     = arr_prob[k,j]*rv.pmf(1) #no arrival
-        ul_trans[n1, n1+1]  = arr_prob[k,j]*rv.pmf(0) #no departure
+        ul_trans[n1, 0]     = arr_prob*rv.pmf(1) #no arrival
+        ul_trans[n1, min(n1+1, MQ-1)]  = arr_prob*rv.pmf(0) #no departure
         for n2 in range(1, n1):
-            #TODO: unfinished!                    
+            #TODO: unfinished!
                     
     return ul_trans
 
