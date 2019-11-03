@@ -57,7 +57,7 @@ def genJobDist():
     for j in prange(N_JOB):
         for m in prange(N_ES):
             roll = np.random.randint(2)
-            proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) else genHeavyTailDist(PROC_RNG_L)
+            proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) if roll==1 else genHeavyTailDist(PROC_RNG_L)
     return proc_dist
 
 @njit
