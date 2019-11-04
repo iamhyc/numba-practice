@@ -95,15 +95,35 @@ def TransES(beta, proc_dist):
 
 @njit
 def evaluate(x0, j, stat):
-    val_ap = np.zeros((N_AP, N_ES), dtype=np.float32)
-    val_es = np.zeros((N_ES,),      dtype=np.float32)
+    val_ap = np.zeros((N_AP, N_ES),     dtype=np.float32)
+    val_es = np.zeros((N_ES,),          dtype=np.float32)
+    ap_vec = np.zeros((N_AP,N_ES, MQ),  dtype=np.float32)
+    es_vec = np.zeros((N_ES,DIM_P),     dtype=np.float32)
+    _alpha = np.zeros((N_ES, ),         dtype=np.float32)
 
+    # init vector
     for m in prange(N_ES):
-        es_vec = ES2Vec(stat.es_stat[m,j])
+        es_vec[m] = ES2Vec(stat.es_stat[m,j])
         for k in prange(N_AP):
-            ap_vec = AP2Vec(stat.ap_stat[k,m,j])
-            #FIXME: not finished
+            ap_vec[k,m] = AP2Vec(stat.ap_stat[k,m,j])
+
+    # iteration and collect cost
+    for n in range(100): #NOTE: could not parallel
+        # calculate _alpha and val_ap
+        for m in range(N_ES):
+            for k in range(N_AP):
+                _m = x0[k]
+                mat = TransAP(arr_prob[k,_m,j], ul_prob[k,m,j])
+                ap_vec[k,m] = mat @ ap_vec[k,m]
+                _alpha[m]   += (ap_vec[k,m] @ APValVec) * ul_prob[k,m,j] #NOTE: REALLY?
+                val_ap[k,m] += (ap_vec[k,m] @ APValVec) * pow(GAMMA, n)
             pass
+        # calculate val_es with _alpha
+        for m in range(N_ES):
+            mat = TransES(_alpha[m], proc_dist[m,j])
+            es_vec[m]  = mat @ es_vec[m]
+            val_es[m] += es_vec @ ESValVec
+        pass
 
     return np.sum(val_ap) + np.sum(val_es)
     pass
