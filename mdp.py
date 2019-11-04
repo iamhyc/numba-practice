@@ -98,7 +98,12 @@ def evaluate(x0, j, stat):
     val_ap = np.zeros((N_AP, N_ES), dtype=np.float32)
     val_es = np.zeros((N_ES,),      dtype=np.float32)
 
-    #TODO:
+    for m in prange(N_ES):
+        es_vec = ES2Vec(stat.es_stat[m,j])
+        for k in prange(N_AP):
+            ap_vec = AP2Vec(stat.ap_stat[k,m,j])
+            #FIXME: not finished
+            pass
 
     return np.sum(val_ap) + np.sum(val_es)
     pass
