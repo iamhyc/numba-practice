@@ -98,8 +98,9 @@ def evaluate(x0, j, stat):
     val_ap = np.zeros((N_AP, N_ES), dtype=np.float32)
     val_es = np.zeros((N_ES,),      dtype=np.float32)
 
+    #TODO:
 
-    return np.sum(val_ap, val_es)
+    return np.sum(val_ap) + np.sum(val_es)
     pass
 
 @njit
@@ -116,4 +117,4 @@ def optimize(stat):
                 val_collection[m] = evaluate(j, stat, x1)
             x0[ order[k] ] = val_collection.argmin()
         pass
-    pass
+    return policy

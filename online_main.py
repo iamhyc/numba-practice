@@ -22,14 +22,17 @@ def NextState(stat, policy):
             for k in prange(N_AP):
                 tmp_arr = [ toss(ul_prob[k,m,j]) for _ in range(stat.ap_stat[k,m,j]) ]
                 newStat.ap_stat[k,m,j] = tmp_arr.count(0) + arrivals[k,m,j]
+                if newStat.ap_stat[k,m,j] >= MQ:    #NOTE: CLIP [0, MQ]
+                    newStat.ap_stat[k,m,j] = MQ-1
                 off_numbers           += tmp_arr.count(1)
-    newStat.ap_stat = np.clip(newStat.ap_stat, 0, MQ) #NOTE: CLIP [0, MQ]
 
     # process jobs on ES
     newStat.es_stat[:,:,0] += off_numbers       # appending new arrival jobs
     newStat.es_stat[:,:,1] -= 1                 # remaining time -1
     for j in prange(N_JOB):                     #
         for m in prange(N_ES):                  #
+            if newStat.es_stat[m,j,0] > LQ:     # NOTE: CLIP [0,LQ]
+                newStat.es_stat[m,j,0] = LQ     #
             if newStat.es_stat[m,j,1] <= 0:     # if first job finished:
                 if newStat.es_stat[m,j,0] > 0:  #   if has_next_job:
                     newStat.es_stat[m,j,0] -= 1 #       next job join processing
@@ -38,7 +41,6 @@ def NextState(stat, policy):
                     newStat.es_stat[m,j,1] = 0  #       clip the remaining time
             else:                               # else:
                 pass                            #    nothing happened
-    newStat.es_stat[:,:,0] = np.clip(newStat.es_stat[:,:,0], 0, LQ) #NOTE: CLIP [0,LQ]
 
     return newStat
 
@@ -54,10 +56,11 @@ def main():
         pass
     pass
 
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(e)
-    finally:
-        exit()
+main()
+# if __name__ == "__main__":
+#     try:
+#         main()
+#     except Exception as e:
+#         raise e
+#     finally:
+#         exit()

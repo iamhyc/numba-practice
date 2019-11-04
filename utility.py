@@ -37,15 +37,15 @@ def FillARow(mat, idx, arr, offset=0):
 @njit
 def genFlatDist(size):          #e.g. [1, 1, ... 1, 1]
     arr = 0.1+0.1*np.random.rand(size).astype(np.float32)
-    return (arr / arr.sum())
+    return (arr / np.sum(arr))
 
 @njit
 def genHeavyTailDist(size):     #e.g. [0, 0, ... 1, 1]
     mid_size = size//2
     arr_1 = 0.1*np.random.rand(mid_size).astype(np.float32)
-    arr_2 = 0.5+0.1*np.random.rand(size-mid_size).astype(np.falot32)
-    arr = np.concatenate(arr_1, arr_2).sort()
-    return (arr / arr.sum())
+    arr_2 = 0.5+0.1*np.random.rand(size-mid_size).astype(np.float32)
+    arr = np.sort( np.concatenate((arr_1, arr_2)) )
+    return (arr / np.sum(arr))
 
 @njit
 def genHeavyHeadDist(size):     #e.g. [1, 1, ... 0, 0]
@@ -56,9 +56,9 @@ def genGaussianDist(size):      #e.g. [0, 0, ..1,1,1.., 0, 0]
     rv = norm(loc=size//2, scale=0.8)
     arr = rv.pmf(np.arange(size))
     arr = np.array(arr, dtype=np.float32)
-    return (arr / arr.sum())
+    return (arr / np.sum(arr))
 
 def genSplitDist(size):         #e.g. [1, 1, ..0,0,0.., 1, 1]
     arr = genGaussianDist(size)
     arr = 1 - arr
-    return (arr / arr.sum())
+    return (arr / np.sum(arr))
