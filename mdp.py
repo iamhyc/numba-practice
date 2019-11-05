@@ -30,11 +30,20 @@ def Policy():
 
 @njit
 def RandomPolicy():
-    return np.zeros((N_AP,N_JOB), dtype=np.int32) #FIXME: not this
+    policy = np.zeros((N_AP, N_JOB), dtype=np.int32)
+    for k in prange(N_AP):
+        for j in prange(N_JOB):
+            policy[k,j] = np.random.randint(N_ES)
+    return policy
 
 @njit
 def BaselinePolicy():
-    return np.zeros((N_AP,N_JOB), dtype=np.int32) #FIXME: not this
+    policy = np.zeros((N_AP, N_JOB),dtype=np.int32)
+    proc_rng = np.copy(PROC_RNG).astype(np.float32)
+    for k in prange(N_AP):
+        for j in prange(N_JOB):
+            policy[k,j] = (proc_dist[:,j,:] @ proc_rng).argmin()
+    return policy
 
 @jit(forceobj=True)
 def cartesian(*arrays):
@@ -124,14 +133,13 @@ def evaluate(x0, j, stat):
             es_vec[m]  = mat @ es_vec[m]
             val_es[m] += (es_vec[m] @ ESValVec) * pow(GAMMA, n)
         pass
-
+    
     return np.sum(val_ap) + np.sum(val_es)
-    pass
 
 @njit
 def optimize(stat):
     policy = BaselinePolicy()
-    for j in range(N_JOB):
+    for j in prange(N_JOB):
         x0    = policy[:,j]
         order = np.random.permutation(N_AP)
         for k in prange(N_AP):
@@ -140,6 +148,7 @@ def optimize(stat):
                 x1 = np.copy(x0)
                 x1[ order[k] ] = m
                 val_collection[m] = evaluate(x1, j, stat)
-            x0[ order[k] ] = val_collection.argmin()
+                pass
+            policy[ order[k],j ] = val_collection.argmin()
         pass
     return policy
