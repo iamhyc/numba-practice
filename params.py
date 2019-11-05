@@ -11,7 +11,7 @@ from numba import njit, prange
 GAMMA = 0.90
 BETA  = 10
 STAGE = 1000
-RANDOM_SEED = 60049#random.randint(0, 2**16)
+RANDOM_SEED = 58760#random.randint(0, 2**16)
 
 N_AP  = 15
 N_ES  = 10
@@ -39,7 +39,7 @@ def reg(x):
     return min(max(0,x),LQ)
 
 np.random.seed(RANDOM_SEED)
-npzfile = 'logs/{:5d}.npz'.format(RANDOM_SEED)
+npzfile = 'logs/{:05d}.npz'.format(RANDOM_SEED)
 
 if Path(npzfile).exists():
     _params = np.load(npzfile)

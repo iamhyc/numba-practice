@@ -52,6 +52,8 @@ def main():
     while stage < STAGE:
         policy = optimize(stat)
         stat = NextState(stat, policy)
+        print('Policy: {}'.format(policy))
+        # print(np.sum(stat.ap_stat)+np.sum(stat.es_stat))
         stage += 1
         pass
     pass

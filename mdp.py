@@ -1,12 +1,12 @@
 
 import numpy as np
-from scipy.stats import binom
 from numpy import arange
-from numba import njit, prange, jitclass
+from numba import jit, njit, prange, jitclass
 from numba import int32, float32
 from numba.typed import Dict
 from itertools import product
 from params import *
+from utility import *
 
 @jitclass([
     ('ap_stat', int32[:,:,:]),
@@ -64,13 +64,13 @@ def ES2Entry(l,r):
 
 @njit
 def TransAP(arr_prob, ul_prob):
-    ul_trans  = np.zeros((N_AP,N_ES,N_JOB, MQ,MQ),  dtype=np.float32)
-    for n1 in prange(MQ):
-        rv = binom(n=n1, p=ul_prob)
-        ul_trans[n1, 0]                 = (1-arr_prob) *rv.pmf(1) #no arrival
-        ul_trans[n1, min(n1+1, MQ-1)]  += arr_prob     *rv.pmf(0) #no departure
+    ul_trans = np.zeros((MQ,MQ), dtype=np.float32)
+    for n1 in range(MQ):
+        ul_trans[n1, 0]                 = (1-arr_prob) *binom(n=n1, p=ul_prob, k=1) #no arrival
+        ul_trans[n1, min(n1+1, MQ-1)]  += arr_prob     *binom(n=n1, p=ul_prob, k=0) #no departure
         for n2 in range(1, n1):
-            ul_trans[n1, n2] = arr_prob*rv.pmf(n2-n1+1) + (1-arr_prob)*rv.pmf(n2-n1)
+            ul_trans[n1, n2] += arr_prob    * binom(n=n1, p=ul_prob, k=n2-n1+1)
+            ul_trans[n1, n2] += (1-arr_prob)* binom(n=n1, p=ul_prob, k=n2-n1)
     return ul_trans
 
 @njit
@@ -85,8 +85,8 @@ def TransES(beta, proc_dist):
             mat[e, ES2Entry(reg(l-1), PROC_RNG[idx])] = prob*(1-beta)
     
     # fill in r!=0
-    for l in range(LQ+1):
-        for r in range(1,PROC_MAX):
+    for l in prange(LQ+1):
+        for r in prange(1,PROC_MAX):
             e = ES2Entry(l, r)
             mat[e, ES2Entry(reg(l+1), r-1)] = beta
             mat[e, ES2Entry(l,        r-1)] = 1-beta
@@ -110,19 +110,19 @@ def evaluate(x0, j, stat):
     # iteration and collect cost
     for n in range(100): #NOTE: could not parallel
         # calculate _alpha and val_ap
-        for m in range(N_ES):
-            for k in range(N_AP):
+        for m in prange(N_ES):
+            for k in prange(N_AP):
                 _m = x0[k]
-                mat = TransAP(arr_prob[k,_m,j], ul_prob[k,m,j])
+                mat = TransAP((_m==m)*arr_prob[k,j], ul_prob[k,m,j])
                 ap_vec[k,m] = mat @ ap_vec[k,m]
                 _alpha[m]   += (ap_vec[k,m] @ APValVec) * ul_prob[k,m,j] #NOTE: REALLY?
                 val_ap[k,m] += (ap_vec[k,m] @ APValVec) * pow(GAMMA, n)
             pass
         # calculate val_es with _alpha
-        for m in range(N_ES):
+        for m in prange(N_ES):
             mat = TransES(_alpha[m], proc_dist[m,j])
             es_vec[m]  = mat @ es_vec[m]
-            val_es[m] += es_vec @ ESValVec
+            val_es[m] += (es_vec[m] @ ESValVec) * pow(GAMMA, n)
         pass
 
     return np.sum(val_ap) + np.sum(val_es)
@@ -131,15 +131,16 @@ def evaluate(x0, j, stat):
 @njit
 def optimize(stat):
     policy = BaselinePolicy()
-    for j in prange(N_JOB):
+    for j in range(N_JOB):
+        print(j)
         x0    = policy[:,j]
         order = np.random.permutation(N_AP)
-        for k in range(N_AP):
+        for k in prange(N_AP):
             val_collection = np.zeros(N_ES, dtype=np.float32)
             for m in prange(N_ES):
                 x1 = np.copy(x0)
                 x1[ order[k] ] = m
-                val_collection[m] = evaluate(j, stat, x1)
+                val_collection[m] = evaluate(x1, j, stat)
             x0[ order[k] ] = val_collection.argmin()
         pass
     return policy

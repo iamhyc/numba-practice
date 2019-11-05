@@ -1,4 +1,5 @@
 
+import time
 import numpy as np
 from scipy.stats import norm
 from numba import njit, jit
@@ -11,6 +12,19 @@ def multoss(p_vec):
 def toss(p):
     p_vec = np.array([1-p, p], dtype=np.float32)
     return multoss(p_vec)
+
+@njit
+def factorial(n):
+    result = 1.0
+    for i in range(1,n+1):
+        result *= i
+    return result
+
+@njit
+def binom(n, p, k):
+    tmp  = factorial(n) / (factorial(k) * factorial(n-k))
+    prob = tmp * np.power(p, k) * np.power(1-p, n-k)
+    return prob
 
 @njit
 def FillMatDiagonal(mat, arr, offset=0):
@@ -62,3 +76,29 @@ def genSplitDist(size):         #e.g. [1, 1, ..0,0,0.., 1, 1]
     arr = genGaussianDist(size)
     arr = 1 - arr
     return (arr / np.sum(arr))
+
+class Timer:
+    def __init__(self, output=True):
+        self.output = output
+        self.delta = 0
+        pass
+    
+    def __enter__(self):
+        self._start = time.time()
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._stop = time.time()
+        self.delta = self._stop - self._start
+        if self.output:
+            print('Time elapsed: %.3f'%self.delta)
+        pass
+    
+    def start(self):
+        self._start = time.time()
+
+    def stop(self):
+        self._stop = time.time()
+        self.delta = self._stop - self._start
+        return self.delta
+    pass
