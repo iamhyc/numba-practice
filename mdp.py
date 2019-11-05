@@ -125,13 +125,14 @@ def evaluate(x0, j, stat):
                 mat = TransAP((_m==m)*arr_prob[k,j], ul_prob[k,m,j])
                 ap_vec[k,m] = mat @ ap_vec[k,m]
                 _alpha[m]   += (ap_vec[k,m] @ APValVec) * ul_prob[k,m,j] #NOTE: REALLY?
-                val_ap[k,m] += (ap_vec[k,m] @ APValVec) * pow(GAMMA, n)
+                val_ap[k,m] += (ap_vec[k,m] @ APValVec) * np.power(GAMMA, n)
             pass
         # calculate val_es with _alpha
-        for m in prange(N_ES):
+        for m in prange(N_ES): #FIXME: NaN Error!
             mat = TransES(_alpha[m], proc_dist[m,j])
             es_vec[m]  = mat @ es_vec[m]
-            val_es[m] += (es_vec[m] @ ESValVec) * pow(GAMMA, n)
+            val_es[m] += (es_vec[m] @ ESValVec) * np.power(GAMMA, n)
+            print(val_es[m])
         pass
     
     return np.sum(val_ap) + np.sum(val_es)
