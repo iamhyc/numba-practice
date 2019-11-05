@@ -132,7 +132,6 @@ def evaluate(x0, j, stat):
 def optimize(stat):
     policy = BaselinePolicy()
     for j in range(N_JOB):
-        print(j)
         x0    = policy[:,j]
         order = np.random.permutation(N_AP)
         for k in prange(N_AP):
