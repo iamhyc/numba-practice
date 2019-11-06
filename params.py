@@ -43,7 +43,6 @@ if Path(npzfile).exists():
     arr_prob    = _params['arr_prob']
     ul_prob     = _params['ul_prob']
     proc_dist   = _params['proc_dist']
-    # ul_trans    = _params['ul_trans']
 else:
     arr_prob = 0.1 + 0.1 * np.random.rand(N_AP, N_JOB).astype(np.float32)            #[0.00, 0.01] for each
     ul_prob  = 0.3 + 0.2*np.random.rand(N_AP, N_ES, N_JOB).astype(np.float32)  #[0.30, 0.50] for each
@@ -54,7 +53,6 @@ else:
     np.savez(npzfile, **{
         'arr_prob'  :arr_prob,
         'ul_prob'   :ul_prob,
-        'proc_dist' :proc_dist,
-        # 'ul_trans'  :ul_trans,
+        'proc_dist' :proc_dist
     })
     pass

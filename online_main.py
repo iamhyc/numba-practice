@@ -7,32 +7,37 @@ from params import *
 import matplotlib.pyplot as plt
 from itertools import product
 
+@njit
 def NextState(stat, policy):
     newStat = State().clone(stat)
 
     # toss job arrival on AP
     arrivals = np.zeros((N_AP, N_ES, N_JOB), dtype=np.int32)
-    for j in range(N_JOB):
-        for k in range(N_AP):
+    for j in prange(N_JOB):
+        for k in prange(N_AP):
             arrivals[k, policy[k,j], j] = toss(arr_prob[k,j]) #m = policy[k,j]
     
     # count uploading & offloading jobs
     off_numbers = np.zeros((N_ES, N_JOB), dtype=np.int32)
-    for j in range(N_JOB):
-        for m in range(N_ES):
-            for k in range(N_AP):
+    for j in prange(N_JOB):
+        for m in prange(N_ES):
+            for k in prange(N_AP):
                 tmp_arr = [ toss(ul_prob[k,m,j]) for _ in range(stat.ap_stat[k,m,j]) ]
                 newStat.ap_stat[k,m,j] = tmp_arr.count(0) + arrivals[k,m,j]
                 if newStat.ap_stat[k,m,j] >= MQ:    #NOTE: CLIP [0, MQ]
                     newStat.ap_stat[k,m,j] = MQ-1
                 off_numbers[m,j]      += tmp_arr.count(1)
 
-    print(off_numbers)
     # process jobs on ES
-    newStat.es_stat[:,:,0] += off_numbers       # appending new arrival jobs
-    newStat.es_stat[:,:,1] -= 1                 # remaining time -1
-    for j in range(N_JOB):                     #
-        for m in range(N_ES):                  #
+    #NOTE: AVOID such operation when using prange!!!
+    # newStat.es_stat[:,:,0] += off_numbers       # appending new arrival jobs
+    # newStat.es_stat[:,:,1] -= 1                 # remaining time -1
+
+    for j in prange(N_JOB):
+        for m in prange(N_ES):
+            newStat.es_stat[m,j,0] += off_numbers[m,j]
+            newStat.es_stat[m,j,1] -= 1
+
             if newStat.es_stat[m,j,0] > LQ:     # NOTE: CLIP [0,LQ]
                 newStat.es_stat[m,j,0] = LQ     #
             if newStat.es_stat[m,j,1] <= 0:     # if first job finished:
@@ -43,7 +48,6 @@ def NextState(stat, policy):
                     newStat.es_stat[m,j,1] = 0  #       clip the remaining time
             else:                               # else:
                 pass                            #    nothing happened
-
     return newStat
 
 
@@ -73,7 +77,7 @@ def main():
         plt.plot([x1, x2], [y1, y2], 'ko-')
         plt.subplot(1, 2, 2)
         plt.scatter(stage, np.sum(stat.es_stat[:,:,0]), c='black')
-        print(stat.es_stat[:,:,1])
+        # print(stat.es_stat[:,:,1])
         (x1, y1) = (stage, np.sum(val))
         plt.pause(0.05)
 
