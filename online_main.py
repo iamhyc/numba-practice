@@ -5,21 +5,20 @@ from mdp import *
 from utility import *
 from params import *
 
-@njit
 def NextState(stat, policy):
     newStat = State().clone(stat)
 
     # toss job arrival on AP
     arrivals = np.zeros((N_AP, N_ES, N_JOB), dtype=np.int32)
-    for j in prange(N_JOB):
-        for k in prange(N_AP):
+    for j in range(N_JOB):
+        for k in range(N_AP):
             arrivals[k, policy[k,j], j] = toss(arr_prob[k,j]) #m = policy[k,j]
     
     # count uploading & offloading jobs
     off_numbers = np.zeros((N_ES, N_JOB), dtype=np.int32)
-    for j in prange(N_JOB):
-        for m in prange(N_ES):
-            for k in prange(N_AP):
+    for j in range(N_JOB):
+        for m in range(N_ES):
+            for k in range(N_AP):
                 tmp_arr = [ toss(ul_prob[k,m,j]) for _ in range(stat.ap_stat[k,m,j]) ]
                 newStat.ap_stat[k,m,j] = tmp_arr.count(0) + arrivals[k,m,j]
                 if newStat.ap_stat[k,m,j] >= MQ:    #NOTE: CLIP [0, MQ]
@@ -29,8 +28,8 @@ def NextState(stat, policy):
     # process jobs on ES
     newStat.es_stat[:,:,0] += off_numbers       # appending new arrival jobs
     newStat.es_stat[:,:,1] -= 1                 # remaining time -1
-    for j in prange(N_JOB):                     #
-        for m in prange(N_ES):                  #
+    for j in range(N_JOB):                     #
+        for m in range(N_ES):                  #
             if newStat.es_stat[m,j,0] > LQ:     # NOTE: CLIP [0,LQ]
                 newStat.es_stat[m,j,0] = LQ     #
             if newStat.es_stat[m,j,1] <= 0:     # if first job finished:
@@ -50,11 +49,15 @@ def main():
     stage = 0
 
     while stage < STAGE:
-        with Timer() as t:
-            policy = optimize(stat)
+        with Timer(False) as t:
+            policy, val = optimize(stat)
             pass
         stat = NextState(stat, policy)
-        print('Policy: {}'.format(policy))
+        # print('Stage: {}'.format(stage))
+        # print('State:{}'.format(stat.es_stat))
+        # print('Policy: {}'.format(policy))
+        print('Value: {}'.format(val))
+        print()
         stage += 1
         pass
     pass
