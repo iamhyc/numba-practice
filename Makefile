@@ -10,4 +10,5 @@ run:
 	python3 ./online_main.py
 
 clean:
-	rm logs/*.log
+	rm -f logs/*.npz
+	rm -f traces/*.npz

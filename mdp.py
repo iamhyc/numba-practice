@@ -1,6 +1,5 @@
 
 import numpy as np
-from numpy import arange
 from numba import jit, njit, prange, jitclass
 from numba import int32, float32
 from numba.typed import Dict
@@ -9,7 +8,7 @@ from params import *
 from utility import *
 
 APValVec  = np.arange(MQ, dtype=np.float32)
-ESValVec  = np.repeat(arange(LQ+1), repeats=PROC_MAX).astype(np.float32)
+ESValVec  = np.repeat(np.arange(LQ+1), repeats=PROC_MAX).astype(np.float32)
 
 @jitclass([ ('ap_stat', int32[:,:,:]), ('es_stat', int32[:,:,:]) ])
 class State(object):
@@ -83,7 +82,7 @@ def TransES(alpha, proc_dist):
         mat[ES2Entry(0, 0), ES2Entry(0, PROC_RNG[idx])] = alpha*prob
 
     # fill in l!=0 && r==0
-    for l in range(1, LQ+1):
+    for l in prange(1, LQ+1):
         e = ES2Entry(l,0)
         for idx,prob in enumerate(proc_dist):
             mat[e, ES2Entry(l,   PROC_RNG[idx])] = prob*alpha
