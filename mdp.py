@@ -133,9 +133,9 @@ def evaluate(x0, j, stat):
             mat = TransES(_alpha[m], proc_dist[m,j])
             es_vec[m]  = mat.T @ es_vec[m]
             val_es[m] += (es_vec[m] @ ESValVec) * np.power(GAMMA, n)
-        # print(es_vec)
         pass
     
+    # print(val_es)
     return np.sum(val_ap) + np.sum(val_es)
 
 @njit
