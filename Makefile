@@ -5,10 +5,8 @@ all:
 	pip3 install --user numba
 	pip3 install --user matplotlib
 
-run:
-	mkdir -p logs
+run:clean
 	python3 ./online_main.py
 
 clean:
-	rm -f logs/*.npz
-	rm -f traces/*.npz
+	@rm -rf traces-*

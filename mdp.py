@@ -21,6 +21,9 @@ class State(object):
         self.ap_stat = np.copy(stat.ap_stat)
         self.es_stat = np.copy(stat.es_stat)
         return self
+    
+    def cost(self):
+        return np.sum(self.ap_stat) + np.sum(self.es_stat[:,:,0])
     pass
 
 @njit

@@ -17,12 +17,12 @@ STAGE = 1000
 
 N_AP  = 3
 N_ES  = 5
-N_JOB = 5
+N_JOB = 10
 MQ    = 3 #maximum queue length on AP (exclusive)
 LQ    = 10 #maximum queue length on ES (inclusive)
 
 PROC_MIN  = 5
-PROC_MAX  = 10
+PROC_MAX  = 15
 PROC_RNG  = np.arange(PROC_MIN, PROC_MAX, dtype=np.int32)
 PROC_RNG_L= len(PROC_RNG)
 DIM_P     = (LQ+1)*PROC_MAX
