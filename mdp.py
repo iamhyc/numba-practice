@@ -48,6 +48,14 @@ def BaselinePolicy():
     return policy
 
 @njit
+def BaselinePolicyUL():
+    policy = np.zeros((N_AP, N_JOB),dtype=np.int32)
+    for k in prange(N_AP):
+        for j in prange(N_JOB):
+            policy[k,j] = (ul_prob[k,:,j]).argmax()
+    return policy
+
+@njit
 def AP2Vec(ap_stat):
     ap_vec = np.zeros(MQ, dtype=np.float32)
     ap_vec[ ap_stat ] = 1

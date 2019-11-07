@@ -7,6 +7,9 @@ from utility import *
 from params import *
 import matplotlib.pyplot as plt
 
+def greedyPolicy(stat, k, j):
+    return (stat.es_stat[:,j,0]).argmin()
+
 def NextState(stat, policy, arrival_ap):
     newStat = State().clone(stat)
 
@@ -14,7 +17,11 @@ def NextState(stat, policy, arrival_ap):
     arrivals = np.zeros((N_AP, N_ES, N_JOB), dtype=np.int32)
     for j in range(N_JOB):
         for k in range(N_AP):
-            arrivals[k, policy[k,j], j] = arrival_ap[k,j] #m = policy[k,j]
+            if callable(policy):
+                _m = policy(stat, k, j)
+                arrivals[k,          _m, j] = arrival_ap[k,j] #m = policy[k,j]
+            else:
+                arrivals[k, policy[k,j], j] = arrival_ap[k,j] #m = policy[k,j]
 
     # count uploading & offloading jobs
     off_numbers = np.zeros((N_ES, N_JOB), dtype=np.int32)
@@ -65,9 +72,8 @@ def test():
     pathlib.Path('./traces-{:05d}'.format(RANDOM_SEED)).mkdir(exist_ok=True)
 
     stage = 0
-    bs_policy = BaselinePolicy()
-    rd_stat, bs_stat, mdp_stat = State(), State(), State()
-    (y1, y2, y3) = (rd_stat, bs_stat, mdp_stat)
+    (random_stat, greedy_stat, bs_proc_stat, bs_ul_stat, mdp_stat) = State(), State(), State(), State(), State()
+    (y1, y2, y3, y4, y5) = (random_stat, greedy_stat, bs_proc_stat, bs_ul_stat, mdp_stat)
 
     while stage < STAGE:
         # toss job arrival on AP
@@ -76,28 +82,43 @@ def test():
             for k in range(N_AP):
                 arrival_ap[k,j] = toss(arr_prob[k,j]) #m = policy[k,j]
 
-        rd_policy     = RandomPolicy()
+        random_policy     = RandomPolicy()
+        bs_proc_policy = BaselinePolicy()
+        bs_ul_policy   = BaselinePolicyUL()
         mdp_policy, val = optimize(mdp_stat)
 
-        mdp_stat = NextState(mdp_stat, mdp_policy, arrival_ap)
-        bs_stat  = NextState(bs_stat,  bs_policy,  arrival_ap)
-        rd_stat  = NextState(rd_stat,  rd_policy,  arrival_ap)
+        random_stat     = NextState(random_stat,  random_policy,  arrival_ap)
+        greedy_stat     = NextState(greedy_stat,  greedyPolicy,   arrival_ap)
+        bs_proc_stat    = NextState(bs_proc_stat, bs_proc_policy, arrival_ap)
+        bs_ul_stat      = NextState(bs_ul_stat,   bs_ul_policy,   arrival_ap)
+        mdp_stat        = NextState(mdp_stat,     mdp_policy,     arrival_ap)
 
-        plt.plot([stage, stage+1], [y1.cost(), rd_stat.cost()],  'co-')
-        plt.plot([stage, stage+1], [y2.cost(), bs_stat.cost()],  'ko-')
-        plt.plot([stage, stage+1], [y3.cost(), mdp_stat.cost()], 'ro-')
+        plt.plot([stage, stage+1], [y1.cost(), random_stat.cost()],  '-co')
+        plt.plot([stage, stage+1], [y2.cost(), greedy_stat.cost()],  '-ko')
+        plt.plot([stage, stage+1], [y3.cost(), bs_proc_stat.cost()], '-bo')
+        plt.plot([stage, stage+1], [y4.cost(), bs_ul_stat.cost()],   '-go')
+        plt.plot([stage, stage+1], [y5.cost(), mdp_stat.cost()],     '-ro')
+        plt.legend(['Random Policy', 'Greedy Policy', 'Baseline (processing time)', 'Baseline (uploading time)', 'MDP Policy'])
         plt.pause(0.05)
-        (y1, y2, y3) = (rd_stat, bs_stat, mdp_stat)
+        (y1, y2, y3, y4, y5) = (random_stat, greedy_stat, bs_proc_stat, bs_ul_stat, mdp_stat)
 
         trace_file = 'traces-{:05d}/{:04d}.npz'.format(RANDOM_SEED, stage)
         np.savez(trace_file, **{
-            'mdp_ap_stat': mdp_stat.ap_stat,
-            'mdp_es_stat': mdp_stat.es_stat,
-            'bs_ap_stat':  bs_stat.ap_stat,
-            'bs_es_stat':  bs_stat.es_stat,
-            'rd_ap_stat':  rd_stat.ap_stat,
-            'rd_es_stat':  rd_stat.es_stat,
-            'mdp_value':   val
+            'random_ap_stat':  random_stat.ap_stat,
+            'random_es_stat':  random_stat.es_stat,
+
+            'greedy_ap_stat':  greedy_stat.ap_stat,
+            'greedy_es_stat':  greedy_stat.es_stat,
+
+            'bs_proc_ap_stat': bs_proc_stat.ap_stat,
+            'bs_proc_es_stat': bs_proc_stat.es_stat,
+
+            'bs_ul_ap_stat':   bs_ul_stat.ap_stat,
+            'bs_ul_es_stat':   bs_ul_stat.es_stat,
+
+            'mdp_ap_stat':     mdp_stat.ap_stat,
+            'mdp_es_stat':     mdp_stat.es_stat,
+            'mdp_value':   val,
         })
 
         stage += 1
