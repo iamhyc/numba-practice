@@ -30,9 +30,11 @@ def NextState(stat, policy, arrival_ap):
             for k in range(N_AP):
                 newStat.ap_stat[k,m,j] = 0 #to copy from stat
                 for _ in range(stat.ap_stat[k,m,j]):
-                    tmp = toss(ul_prob[k,m,j])
-                    newStat.ap_stat[k,m,j] += tmp
-                    off_numbers[m,j]       += tmp
+                    toss_ul = toss(ul_prob[k,m,j]) #1 for uploading; 0 for stay
+                    if toss_ul:
+                        off_numbers[m,j] += 1
+                    else:
+                        newStat.ap_stat[k,m,j] += 1
                     pass
                 newStat.ap_stat[k,m,j] += arrivals[k,m,j]
                 if newStat.ap_stat[k,m,j] >= MQ:

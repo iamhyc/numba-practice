@@ -10,6 +10,7 @@ from numba import njit, prange
 
 RANDOM_SEED = random.randint(0, 2**16)
 np.random.seed(RANDOM_SEED)
+print('RANDOM SEED: {}'.format(RANDOM_SEED))
 
 GAMMA = 0.90
 BETA  = 10
@@ -33,7 +34,9 @@ def genJobDist():
     for j in prange(N_JOB):
         for m in prange(N_ES):
             roll = np.random.randint(2)
-            proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) if roll==1 else genHeavyTailDist(PROC_RNG_L)
+            proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) if roll==1 else genHeavyTailDist(PROC_RNG_L) #NOTE: random head/tail
+            # proc_dist[m,j] = genHeavyHeadDist(PROC_RNG_L) #NOTE: only head (LIGHT job)
+            # proc_dist[m,j] = genHeavyTailDist(PROC_RNG_L) #NOTE: only tail (HEAVY job)
     return proc_dist
 
 npzfile = 'logs/{:05d}.npz'.format(RANDOM_SEED)
@@ -44,8 +47,8 @@ if Path(npzfile).exists():
     ul_prob     = _params['ul_prob']
     proc_dist   = _params['proc_dist']
 else:
-    arr_prob = 0.1 + 0.1 * np.random.rand(N_AP, N_JOB).astype(np.float32)            #[0.00, 0.01] for each
-    ul_prob  = 0.3 + 0.2*np.random.rand(N_AP, N_ES, N_JOB).astype(np.float32)  #[0.30, 0.50] for each
+    arr_prob = 0.10 + 0.10 * np.random.rand(N_AP, N_JOB).astype(np.float32)            #[0.00, 0.01] for each
+    ul_prob  = 0.99 + 0.01 * np.random.rand(N_AP, N_ES, N_JOB).astype(np.float32)      #[0.30, 0.50] for each
 
     proc_dist = genJobDist()
     # ul_trans = TransAP()

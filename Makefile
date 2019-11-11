@@ -8,6 +8,10 @@ all:
 run:
 	python3 ./online_main.py
 
+rm:
+	rm -f logs/${ID}.npz
+	rm -rf traces-${ID}
+
 clean:
 	@rm -rf logs/
 	@rm -rf traces-*
