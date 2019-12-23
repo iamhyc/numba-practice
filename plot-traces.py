@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
 import random
 import numpy as np
 from scipy.interpolate import interp1d
-import matplotlib. pyplot as plt
+import matplotlib.pyplot as plt
 
-LOG_NUMBER = '57718'
+LOG_NUMBER = '39142'
 
 npzfiles = 'traces-%s/{:04d}.npz'%(LOG_NUMBER)
 random_cost  = np.zeros(1000, dtype=np.float32)
@@ -27,7 +28,11 @@ def plot_cost_vs_time():
     plt.plot(range(1000), bs_proc_cost, '-bo')
     plt.plot(range(1000), bs_ul_cost,   '-go')
     plt.plot(range(1000), mdp_cost,     '-ro')
-    plt.legend(['Random Policy', 'Greedy Policy', 'Baseline (processing time)', 'Baseline (uploading time)', 'MDP Policy'])
+    plt.legend(['Random Policy', 'SQF', 'SCF', 'SUF', 'MDP Policy'])
+    plt.xlabel('Index of Time Slots')
+    plt.ylabel('Cost')
+    # plt.legend(['Random Policy', 'Greedy Policy', 'Baseline (processing time)', 'Baseline (uploading time)', 'MDP Policy'])
+    plt.grid()
     plt.show()
     pass
 
@@ -60,7 +65,11 @@ def plot_cost_cdf_cmp_algorithm():
     plt.plot(inter_x, inter_y_pmf[2], '-b')
     plt.plot(inter_x, inter_y_pmf[3], '-g')
     plt.plot(inter_x, inter_y_pmf[4], '-r')
-    plt.legend(['Random Policy', 'Greedy Policy', 'Baseline (processing time)', 'Baseline (uploading time)', 'MDP Policy'])
+    # plt.legend(['Random Policy', 'Greedy Policy', 'Baseline (processing time)', 'Baseline (uploading time)', 'MDP Policy'])
+    plt.legend(['Random Policy', 'SQF', 'SCF', 'SUF', 'MDP Policy'])
+    plt.ylabel('CDF')
+    plt.xlabel('Cost per Time Slot')
+    plt.grid()
     plt.show()
     pass
 
